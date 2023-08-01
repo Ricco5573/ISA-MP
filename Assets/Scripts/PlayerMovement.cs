@@ -1,81 +1,118 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using TMPro;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
 
 public class PlayerMovement : NetworkBehaviour
 {
-    public float rollSpeed = 50f;         // Speed of roll rotation
-    public float bankSpeed = 20f;          // Speed of bank rotation
-    public float turnSpeed = 75f;         // Speed of turning
-    public float acceleration = 2000f;        // Acceleration rate
-    public float deceleration = 30f;        // Deceleration rate
-    public float maxSpeed = 2000f;           // Maximum speed
-    public float minSpeed = 5f;            // Minimum speed
-    public float altitudeLossRate = 0.5f;  // Rate of altitude loss
+    private NetworkVariable<int> throttle = new NetworkVariable<int>();
+    private const int startThrottle = 50;
+
+    private float horizontalVelocity;
+    private int lift = 100; //this is to simulate the concept of lift. if you are moving fast enough in the horizontal plane, you will get lift. If not, you will lose lift and start to fall.
+
+
+    private NetworkVariable<int> health = new NetworkVariable<int>();
+    private const int maxHealth = 100;
+    [SerializeField]
+    private GameObject centerOBJ, bulletPos, bullet;
+    [SerializeField]
+    private GameObject cameraOBJ;
+    private float speedmodifier = 1;
+    private float torqueForce = 2;
+
+
     private Rigidbody rb;
-    private float currentSpeed = 0f;       // Current speed of the player
-    private float currentAltitude = 0f;    // Current altitude of the player
 
 
 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        throttle.Value = startThrottle;
+        health.Value = maxHealth;
     }
     private void Update()
     {
-        acceleration = 2000f;
-        maxSpeed = 2000f;
-        // Get input for rolling and banking
-        float rollInput = Input.GetAxis("Roll");
-        float bankInput = Input.GetAxis("Bank");
+        Movement();
+        if (Input.GetAxis("Fire1") >= 0.1f)
+        {
+           Instantiate(bullet, bulletPos.transform.position, transform.rotation);
 
-        // Calculate roll and bank rotation
-        float roll = rollInput * rollSpeed * Time.deltaTime;
-        float bank = bankInput * bankSpeed * Time.deltaTime;
+        }
+    }
 
-        // Apply roll and bank rotations
-        transform.Rotate(Vector3.forward, -roll, Space.Self);
-        transform.Rotate(Vector3.right, bank, Space.Self);
+    private void Movement()
+    {
 
-        // Get input for turning    
-        float turnInput = Input.GetAxis("Vertical");
+        torqueForce = 100 / (throttle.Value + 6) + 1; //the faster you move, the slower you turn. the plus 6 and plus 1 respectively are to bind it between the numbers of 15 and 1. So that you cant not turn, and cant turn too fast
+        float accel = Input.GetAxis("Throttle");
+        if (accel != 0)
+        {
+            if (accel > 0 && throttle.Value < 100)
+            {
+                throttle.Value++;
+            }
+            else if (accel < 0 && throttle.Value > 1)
+            {
+                throttle.Value--;
+            }
+        }
 
-        // Calculate turn rotation
-        float turn = turnInput * turnSpeed * Time.deltaTime;
+        float banking = Input.GetAxis("Bank");
+        if (banking != 0)
+        {
+            rb.AddTorque(centerOBJ.transform.up * torqueForce * banking);
+        }
+        float tilt = Input.GetAxis("Tilt");
+        if (tilt != 0)
+        {
+            rb.AddTorque(centerOBJ.transform.right * torqueForce * tilt);
+        }
 
-        // Apply turn rotation
-        transform.Rotate(Vector3.up, turn, Space.Self);
+        horizontalVelocity = rb.velocity.x + rb.velocity.z;
+        if (horizontalVelocity > 1 && lift < 100 && rb.velocity.y < 5)
+        {
+            lift++;
+        }
+        else if (horizontalVelocity < 1 && lift > 0)
+        {
+            lift--;
 
-        // Get input for accelerating and decelerating
-        float throttleInput = Input.GetAxis("Throttle");
+        }
+        else if (rb.velocity.y > 10 && lift > 0)
+        {
+            lift--;
+        }
+        rb.AddForce(transform.forward * throttle.Value * 19000 * speedmodifier, ForceMode.Force);
 
 
-        Debug.Log(maxSpeed);      // Calculate speed change
-        float speedChange = throttleInput * acceleration;
-    
-        // Apply speed change
-        currentSpeed = Mathf.Clamp(currentSpeed + speedChange, minSpeed, maxSpeed);
+        if (lift < 20)
+        {
+            rb.useGravity = true;
+            speedmodifier = 0.1f;
 
-        // Move the player forward based on the current speed
-        rb.AddForceAtPosition( this.gameObject.transform.forward * currentSpeed, gameObject.transform.position);
+        }
+        else if (lift > 50)
+        {
+            rb.useGravity = false;
+            speedmodifier = 1;
 
-        // Check if the player is not moving fast enough
-         if (currentSpeed < minSpeed)
-         {
-             // Calculate altitude loss
-             float altitudeLoss = altitudeLossRate * Time.deltaTime;
+        }
+        cameraOBJ.transform.RotateAround(centerOBJ.transform.position,
+                                cameraOBJ.transform.up,
+                                -Input.GetAxis("Mouse X") * 5);
 
-             // Decrease the altitude
-             currentAltitude -= altitudeLoss;
+        cameraOBJ.transform.RotateAround(centerOBJ.transform.position,
+                                        cameraOBJ.transform.right,
+                                        Input.GetAxis("Mouse Y") * 5);
+        //not my code, grabbed off of stackoverflow: https://stackoverflow.com/questions/54852001/rotate-camera-around-a-gameobject-on-mouse-drag-in-unity
 
-             // Move the player downwards
-             transform.Translate(Vector3.down * altitudeLoss);
-         }
     }
 }
 
