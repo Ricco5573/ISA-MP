@@ -39,7 +39,7 @@ public class Join : MonoBehaviour
 
         //Ask Unity Services for allocation data based on a join code
         JoinAllocation allocation = await Unity.Services.Relay.RelayService.Instance.JoinAllocationAsync(joinCode);
-
+        Debug.Log("Joined server");
         //Populate the joining data
         RelayJoinData data = new RelayJoinData
         {

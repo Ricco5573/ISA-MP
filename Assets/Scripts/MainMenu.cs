@@ -13,13 +13,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-
-public class MainMenu : MonoBehaviour
+using Unity.Netcode;
+public class MainMenu : NetworkBehaviour
 {
     [SerializeField]
     private TextMeshProUGUI joinCodeHost;
     [SerializeField]
-    private GameObject mainMenu, joinMenu, hostMenu, hostOBJ, joinOBJ;
+    private GameObject mainMenu, joinMenu, hostMenu, hostOBJ, joinOBJ, fullServer;
     [SerializeField]
     private InputField codeField;
     [SerializeField]
@@ -27,7 +27,8 @@ public class MainMenu : MonoBehaviour
     private Join join;
 
 
-    public void Back(){
+    public void Back()
+    {
 
         if (joinMenu.activeSelf)
         {
@@ -39,7 +40,7 @@ public class MainMenu : MonoBehaviour
             hostMenu.SetActive(false);
             mainMenu.SetActive(true);
         }
-}
+    }
     public void SetJoinCode(string code)
     {
         joinCodeHost.text = code;
@@ -47,21 +48,27 @@ public class MainMenu : MonoBehaviour
     }
     public async void JoinMenu()
     {
- 
+
         Debug.Log(codeField.text.Length);
-        await Join.JoinGame(codeField.text);
+       // await Join.JoinGame(codeField.text);
         UnityTransport transport = NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>();
-         transport.SetRelayServerData(join.GetJoinData().IPv4Address, join.GetJoinData().Port, join.GetJoinData().AllocationIDBytes, join.GetJoinData().Key, join.GetJoinData().ConnectionData);
+        //transport.SetRelayServerData(join.GetJoinData().IPv4Address, join.GetJoinData().Port, join.GetJoinData().AllocationIDBytes, join.GetJoinData().Key, join.GetJoinData().ConnectionData);
         Debug.Log(codeField.text);
-        nM.StartClient();
+
+
     }
 
     public void startJoin()
     {
         mainMenu.SetActive(false);
-        joinMenu.SetActive(true);
+        joinMenu.SetActive(false);
 
-        join = Instantiate(joinOBJ, transform.position, Quaternion.identity).GetComponent<Join>();
+        //join = Instantiate(joinOBJ, transform.position, Quaternion.identity).GetComponent<Join>();
+        nM.StartClient();
+        NetworkManager.Singleton.GetComponent<UnityTransport>().SetConnectionData(
+            "127.0.0.1",
+            (ushort)7777
+            );
 
     }
     public async void startHost()
@@ -69,22 +76,45 @@ public class MainMenu : MonoBehaviour
         mainMenu.SetActive(false);
 
         Debug.Log("Starting server");
-        Host host = Instantiate(hostOBJ, transform.position, Quaternion.identity).GetComponent<Host>(); 
-        await Host.HostGame();
+        Host host = Instantiate(hostOBJ, transform.position, Quaternion.identity).GetComponent<Host>();
+       //await Host.HostGame();
         Debug.Log("Server started");
 
         UnityTransport transport = NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>();
-        transport.SetRelayServerData(host.GetData().IPv4Address, host.GetData().Port, host.GetData().AllocationIDBytes, host.GetData().Key, host.GetData().ConnectionData);
-        SetJoinCode(host.GetJoinCode());
-        Debug.Log("Joincode send");
-
+       //transport.SetRelayServerData(host.GetData().IPv4Address, host.GetData().Port, host.GetData().AllocationIDBytes, host.GetData().Key, host.GetData().ConnectionData);
+       SetJoinCode(host.GetJoinCode());
+       // Debug.Log("Joincode send");
+        nM.StartHost();
         hostMenu.SetActive(true);
+        fullServer.SetActive(false);
     }
 
     public void StartGame()
     {
-        nM.StartHost(); 
+
         Debug.Log(nM.SceneManager);
-            NetworkManager.Singleton.SceneManager.LoadScene("Fight", LoadSceneMode.Single);
+        NetworkManager.Singleton.SceneManager.LoadScene("Fight", LoadSceneMode.Single);
     }
-}
+
+    private void Update()
+    {
+        if (nM.IsHost)
+        {
+            Debug.Log(nM.ConnectedClientsList.Count);
+            if (nM.ConnectedClientsList.Count >= 2)
+            {
+                fullServer.SetActive(true);
+
+
+            }
+            else
+            {
+                fullServer.SetActive(false);
+            }
+        }
+        else if (nM.IsClient)
+        {
+        }
+
+        }
+    }

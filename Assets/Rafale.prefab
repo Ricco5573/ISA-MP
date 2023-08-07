@@ -1251,7 +1251,8 @@ GameObject:
   - component: {fileID: 6466607372401989798}
   - component: {fileID: 6466607372401989792}
   - component: {fileID: 6466607372401989796}
-  - component: {fileID: 6466607372401989786}
+  - component: {fileID: 7403583204335613124}
+  - component: {fileID: 776497330565268143}
   m_Layer: 0
   m_Name: Rafale
   m_TagString: Untagged
@@ -1324,7 +1325,7 @@ MonoBehaviour:
   bulletPos: {fileID: 6466607373325066259}
   bullet: {fileID: 5406432039472952745, guid: 615ad9f41137c2b4a833a910db325156, type: 3}
   cameraOBJ: {fileID: 1565534205034447678}
---- !u!114 &6466607372401989786
+--- !u!114 &7403583204335613124
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1333,6 +1334,32 @@ MonoBehaviour:
   m_GameObject: {fileID: 6924198273779340580}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: facb1ec56f01f2a4c9636442dd854b1a, type: 3}
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  InLocalSpace: 0
+  Interpolate: 1
+--- !u!114 &776497330565268143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6924198273779340580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
