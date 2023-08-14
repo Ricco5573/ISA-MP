@@ -50,9 +50,10 @@ public class MainMenu : NetworkBehaviour
     {
 
         Debug.Log(codeField.text.Length);
-       // await Join.JoinGame(codeField.text);
+        await Join.JoinGame(codeField.text);
         UnityTransport transport = NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>();
-        //transport.SetRelayServerData(join.GetJoinData().IPv4Address, join.GetJoinData().Port, join.GetJoinData().AllocationIDBytes, join.GetJoinData().Key, join.GetJoinData().ConnectionData);
+        transport.SetRelayServerData(join.GetJoinData().IPv4Address, join.GetJoinData().Port, join.GetJoinData().AllocationIDBytes, join.GetJoinData().Key, join.GetJoinData().ConnectionData);
+        nM.StartHost();
         Debug.Log(codeField.text);
 
 
@@ -61,14 +62,10 @@ public class MainMenu : NetworkBehaviour
     public void startJoin()
     {
         mainMenu.SetActive(false);
-        joinMenu.SetActive(false);
+        joinMenu.SetActive(true);
 
-        //join = Instantiate(joinOBJ, transform.position, Quaternion.identity).GetComponent<Join>();
-        nM.StartClient();
-        NetworkManager.Singleton.GetComponent<UnityTransport>().SetConnectionData(
-            "127.0.0.1",
-            (ushort)7777
-            );
+        join = Instantiate(joinOBJ, transform.position, Quaternion.identity).GetComponent<Join>();
+
 
     }
     public async void startHost()
@@ -77,16 +74,17 @@ public class MainMenu : NetworkBehaviour
 
         Debug.Log("Starting server");
         Host host = Instantiate(hostOBJ, transform.position, Quaternion.identity).GetComponent<Host>();
-       //await Host.HostGame();
+       await Host.HostGame();
         Debug.Log("Server started");
 
         UnityTransport transport = NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>();
-       //transport.SetRelayServerData(host.GetData().IPv4Address, host.GetData().Port, host.GetData().AllocationIDBytes, host.GetData().Key, host.GetData().ConnectionData);
+       transport.SetRelayServerData(host.GetData().IPv4Address, host.GetData().Port, host.GetData().AllocationIDBytes, host.GetData().Key, host.GetData().ConnectionData);
        SetJoinCode(host.GetJoinCode());
-       // Debug.Log("Joincode send");
+       Debug.Log("Joincode send");
         nM.StartHost();
         hostMenu.SetActive(true);
         fullServer.SetActive(false);
+
     }
 
     public void StartGame()
@@ -100,7 +98,6 @@ public class MainMenu : NetworkBehaviour
     {
         if (nM.IsHost)
         {
-            Debug.Log(nM.ConnectedClientsList.Count);
             if (nM.ConnectedClientsList.Count >= 2)
             {
                 fullServer.SetActive(true);
@@ -111,9 +108,6 @@ public class MainMenu : NetworkBehaviour
             {
                 fullServer.SetActive(false);
             }
-        }
-        else if (nM.IsClient)
-        {
         }
 
         }

@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class FightSceneInit : NetworkBehaviour
 {
     private bool[] ready = new bool[2];
     [SerializeField]
-    private GameObject clientReady, hostReady, readyButton, panel;
+    private GameObject clientReady, hostReady, readyButton, panel, hostSpawn, clientSpawn, clientPlay, hostPlayer;
     [SerializeField]
     private TextMeshProUGUI countdownTimer;
     private bool countdownStarted = false;
+    [SerializeField]
+    private Camera uiCam;
+    [SerializeField]
+    private BattleManager bat;
     public void ReadyButton()
     {
         if (IsHost)
@@ -19,7 +24,7 @@ public class FightSceneInit : NetworkBehaviour
             ServerReadyClientRpc();
             Debug.Log("Host ready");
         }
-        else if (IsClient)
+        else if (!IsHost)
         {
             ClientReadyServerRpc();
             Debug.Log("Client ready");
@@ -91,6 +96,7 @@ public class FightSceneInit : NetworkBehaviour
         yield return new WaitForSecondsRealtime(1);
         HideShowPanelClientRpc(true);
         Debug.Log("Start");
+        startBattleServerRpc();
 
 
     }
@@ -100,15 +106,59 @@ public class FightSceneInit : NetworkBehaviour
         countdownTimer.text = number.ToString();
     }
     [ClientRpc]
-    private void HideShowPanelClientRpc(bool hide)
+    public void HideShowPanelClientRpc(bool hide)
     {
         if (hide)
         {
             panel.transform.position = new Vector3(5000, 5000);
+            uiCam.enabled = false;
         }
         else
         {
             panel.transform.position = new Vector3(0, 0);
+            uiCam.enabled = true;
         }
+    }
+
+    [ServerRpc(RequireOwnership = false )]
+    private void startBattleServerRpc()
+    {
+        Debug.Log("Starting battle");
+        if (IsHost)
+        {
+            IReadOnlyList<ulong> id = NetworkManager.Singleton.ConnectedClientsIds;
+            GameObject Host = Instantiate(hostPlayer, hostSpawn.transform.position, Quaternion.identity);
+            Host.GetComponent<NetworkObject>().SpawnAsPlayerObject(id[0]);
+
+            GameObject Client = Instantiate(clientPlay, clientSpawn.transform.position, Quaternion.identity);
+            Client.GetComponent<NetworkObject>().SpawnAsPlayerObject(id[1]);
+            bat.SetPlayers(Client, Host);
+
+            SetCamerasClientRpc();
+        }
+    }
+
+    [ClientRpc]
+    private void SetCamerasClientRpc()
+    {
+
+        if (IsHost)
+        {
+            Camera hostCam = GameObject.FindGameObjectWithTag("HostCam").GetComponent<Camera>();
+            hostCam.enabled = true;
+            Camera clientCam = GameObject.FindGameObjectWithTag("ClientCam").GetComponent<Camera>();
+            clientCam.enabled = false;
+        }
+        else if (!IsHost)
+        {
+            Camera clientCam = GameObject.FindGameObjectWithTag("ClientCam").GetComponent<Camera>();
+            clientCam.enabled = true;
+            Camera hostCam = GameObject.FindGameObjectWithTag("HostCam").GetComponent<Camera>();
+            hostCam.enabled = false;
+        }
+    }
+    public void ResetScene()
+    {
+        NetworkManager.Singleton.SceneManager.LoadScene("Fight", LoadSceneMode.Single);
     }
 }

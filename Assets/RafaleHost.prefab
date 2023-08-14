@@ -10,10 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8173977482281848346}
   - component: {fileID: 498105688807827831}
-  - component: {fileID: 1992070145755263317}
   m_Layer: 0
   m_Name: Camera
-  m_TagString: Untagged
+  m_TagString: HostCam
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
@@ -76,14 +75,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &1992070145755263317
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1565534205034447678}
-  m_Enabled: 1
 --- !u!1 &5224476377017115296
 GameObject:
   m_ObjectHideFlags: 0
@@ -1253,8 +1244,9 @@ GameObject:
   - component: {fileID: 6466607372401989796}
   - component: {fileID: 7403583204335613124}
   - component: {fileID: 776497330565268143}
+  - component: {fileID: 1911097774504287535}
   m_Layer: 0
-  m_Name: Rafale
+  m_Name: RafaleHost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1350,7 +1342,7 @@ MonoBehaviour:
   RotAngleThreshold: 0.01
   ScaleThreshold: 0.01
   InLocalSpace: 0
-  Interpolate: 1
+  Interpolate: 0
 --- !u!114 &776497330565268143
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1363,3 +1355,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!65 &1911097774504287535
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6924198273779340580}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 4.21, y: 2.2, z: 5.94}
+  m_Center: {x: 0, y: 0, z: 0}

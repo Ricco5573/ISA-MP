@@ -7,16 +7,16 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 
-public class PlayerMovement : NetworkBehaviour
+public class PlayerMovementHost : NetworkBehaviour
 {
-    private NetworkVariable<int> throttle = new NetworkVariable<int>();
+    private int throttle;
     private const int startThrottle = 50;
 
     private float horizontalVelocity;
     private int lift = 100; //this is to simulate the concept of lift. if you are moving fast enough in the horizontal plane, you will get lift. If not, you will lose lift and start to fall.
 
 
-    private NetworkVariable<int> health = new NetworkVariable<int>();
+    private int health;
     private const int maxHealth = 100;
     [SerializeField]
     private GameObject centerOBJ, bulletPos, bullet;
@@ -32,34 +32,37 @@ public class PlayerMovement : NetworkBehaviour
 
     private void Start()
     {
+        if(IsHost) {
+            Debug.Log("Host Spawned");
+        }
         rb = GetComponent<Rigidbody>();
-        throttle.Value = startThrottle;
-        health.Value = maxHealth;
+        throttle = startThrottle;
+        health = maxHealth;
     }
     private void Update()
     {
-        Movement();
-        if (Input.GetAxis("Fire1") >= 0.1f)
+        if (IsHost)
         {
-           Instantiate(bullet, bulletPos.transform.position, transform.rotation);
-
+            MovementServerRpc();
         }
+
     }
 
-    private void Movement()
+    [ServerRpc (RequireOwnership = false)]
+    private void MovementServerRpc()
     {
 
-        torqueForce = 100 / (throttle.Value + 6) + 1; //the faster you move, the slower you turn. the plus 6 and plus 1 respectively are to bind it between the numbers of 15 and 1. So that you cant not turn, and cant turn too fast
+        torqueForce = 100 / (throttle + 6) + 1; //the faster you move, the slower you turn. the plus 6 and plus 1 respectively are to bind it between the numbers of 15 and 1. So that you cant not turn, and cant turn too fast
         float accel = Input.GetAxis("Throttle");
         if (accel != 0)
         {
-            if (accel > 0 && throttle.Value < 100)
+            if (accel > 0 && throttle < 100)
             {
-                throttle.Value++;
+                throttle++;
             }
-            else if (accel < 0 && throttle.Value > 1)
+            else if (accel < 0 && throttle > 1)
             {
-                throttle.Value--;
+                throttle--;
             }
         }
 
@@ -88,7 +91,7 @@ public class PlayerMovement : NetworkBehaviour
         {
             lift--;
         }
-        rb.AddForce(transform.forward * throttle.Value * 19000 * speedmodifier, ForceMode.Force);
+        rb.AddForce(transform.forward * throttle * 19000 * speedmodifier, ForceMode.Force);
 
 
         if (lift < 20)
@@ -111,7 +114,12 @@ public class PlayerMovement : NetworkBehaviour
                                         cameraOBJ.transform.right,
                                         Input.GetAxis("Mouse Y") * 5);
         //not my code, grabbed off of stackoverflow: https://stackoverflow.com/questions/54852001/rotate-camera-around-a-gameobject-on-mouse-drag-in-unity
+        if (Input.GetAxis("Fire1") >= 0.1f)
+        {
+          GameObject b =  Instantiate(bullet, bulletPos.transform.position, transform.rotation);
+            b.GetComponent<NetworkObject>().Spawn();
 
+        }
     }
 }
 

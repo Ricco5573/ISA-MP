@@ -11,7 +11,6 @@ public class Initialization : MonoBehaviour
         try
         {
             await UnityServices.InitializeAsync();
-            AuthenticationService.Instance.SwitchProfile($"Host");
         }
         catch (Exception e)
         {

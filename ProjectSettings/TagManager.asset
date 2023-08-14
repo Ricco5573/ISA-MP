@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Bullet
   - Terrain
+  - ClientCam
+  - HostCam
   layers:
   - Default
   - TransparentFX

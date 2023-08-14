@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
@@ -10,13 +11,13 @@ public class Bullet : MonoBehaviour
     private void Start()
     {
         rb= GetComponent<Rigidbody>();
-        Debug.Log(rb.velocity);
+        StartCoroutine(timerServerRpc());
     }
 
 
     private void Update()
     {
-        rb.AddForce(this.transform.forward * 9000, ForceMode.Force);
+        rb.AddForce(this.transform.forward * 900, ForceMode.Force);
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -29,5 +30,11 @@ public class Bullet : MonoBehaviour
             //trigger damage.
             Destroy(gameObject);
         }
+    }
+    [ServerRpc (RequireOwnership = false)]
+    private IEnumerator timerServerRpc()
+    {
+        yield return new WaitForSecondsRealtime(5);
+        this.gameObject.GetComponent<NetworkObject>().Despawn();
     }
 }
